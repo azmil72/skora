@@ -1,17 +1,32 @@
 package main
 
 import (
-	"github.com/gin-gonic/gin"
+	"log"
+	"os"
+
+	"github.com/joho/godotenv"
+	"backend/internal/database"
+	"backend/internal/routes"
 )
 
 func main() {
-	r := gin.Default()
+	// Load environment variables
+	if err := godotenv.Load(); err != nil {
+		log.Println("No .env file found")
+	}
 
-	r.GET("/api/hello", func(c *gin.Context) {
-		c.JSON(200, gin.H{
-			"message": "Hello from Gin",
-		})
-	})
+	// Initialize database
+	db := database.InitDB()
 
-	r.Run(":8080")
+	// Setup routes
+	r := routes.SetupRoutes(db)
+
+	// Get port from environment or use default
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+
+	log.Printf("Server starting on port %s", port)
+	r.Run(":" + port)
 }
